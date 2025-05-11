@@ -1,0 +1,278 @@
+<mujoco model="aloha">
+  <compiler angle="radian" meshdir="assets" autolimits="true"/>
+
+  <option cone="elliptic" impratio="10" integrator="implicitfast"/>
+
+  <asset>
+    <material name="black" rgba="0.15 0.15 0.15 1"/>
+    <material name="camera_black" rgba="0.15 0.15 0.15 1"/>
+    
+    <!-- Assets from dual_arm_robot.xml -->
+    <mesh name="link1" file="link1.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="link2" file="link2.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="link3" file="link3.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="link4" file="link4.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="link5" file="link5.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="gripper_left_palm" file="gripper_left_palm.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="gripper_right_palm" file="gripper_right_palm.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="d405_solid" file="d405_solid.stl"/>
+    
+    <!-- Original aloha scene assets -->
+    <mesh file="vx300s_1_base.stl" scale="0.001 0.001 0.001"/>
+    <mesh file="vx300s_2_shoulder.stl" scale="0.001 0.001 0.001"/>
+    <mesh file="vx300s_3_upper_arm.stl" scale="0.001 0.001 0.001"/>
+    <mesh file="vx300s_4_upper_forearm.stl" scale="0.001 0.001 0.001"/>
+    <mesh file="vx300s_5_lower_forearm.stl" scale="0.001 0.001 0.001"/>
+    <mesh file="vx300s_6_wrist.stl" scale="0.001 0.001 0.001"/>
+    <mesh file="vx300s_7_gripper_prop.stl"/>
+    <mesh file="vx300s_7_gripper_bar.stl"/>
+    <mesh file="vx300s_7_gripper_wrist_mount.stl"/>
+    <mesh file="vx300s_8_custom_finger_left.stl"/>
+    <mesh file="vx300s_8_custom_finger_right.stl"/>
+  </asset>
+
+  <default>
+    <!-- Defaults for filtered actuators from filtered_cartesian_actuators.xml -->
+    <default class="act">
+      <!-- filtered actuators produce smoother motion -->
+      <general dyntype="filterexact" biastype="affine" dynprm="0.5"/>
+      <default class="act_position">
+        <general gainprm="1000" biasprm="0 -1000 -300"/>
+        <default class="act_position_x">
+          <general ctrlrange="-0.5 0.2"/>
+        </default>
+        <default class="act_position_y">
+          <general ctrlrange="-0.35 0.35"/>
+        </default>
+        <default class="act_position_z">
+          <general ctrlrange="-0.25 0.5"/>
+        </default>
+      </default>
+      <default class="act_rotation">
+        <general gainprm="50" biasprm="0 -50 -15" ctrlrange="-1.5 1.5"/>
+      </default>
+      <default class="act_gripper">
+        <general ctrlrange="0.002 0.037" gainprm="2000" biasprm="0 -2000 -124" dynprm="0.3"/>
+      </default>
+    </default>
+    
+    <!-- Defaults for the new dual arm robot -->
+    <default class="omx">
+      <joint armature="0.1" damping="10.0"/>
+      <position kp="1000" kv="200" forcerange="-100 100"/>
+    </default>
+    
+    <!-- Preserve original defaults for backwards compatibility -->
+    <default class="vx300s">
+      <joint axis="0 1 0" actuatorfrcrange="-35 35"/>
+      <site group="4"/>
+      <default class="waist">
+        <joint axis="0 0 1" range="-3.14158 3.14158" damping="5.76"/>
+        <position ctrlrange="-3.14158 3.14158" kp="43"/>
+      </default>
+      <default class="shoulder">
+        <joint range="-1.85005 1.25664" armature="0.395" frictionloss="2.0" damping="20.0" actuatorfrcrange="-144 144"/>
+        <position ctrlrange="-1.85005 1.25664" kp="265"/>
+      </default>
+      <default class="elbow">
+        <joint range="-1.76278 1.6057" armature="0.383" frictionloss="1.15" damping="18.49" actuatorfrcrange="-59 59"/>
+        <position ctrlrange="-1.76278 1.6057" kp="227"/>
+      </default>
+      <default class="forearm_roll">
+        <joint axis="1 0 0" range="-3.14158 3.14158" armature="0.14" damping="6.78" actuatorfrcrange="-22 22"/>
+        <position ctrlrange="-3.14158 3.14158" kp="78"/>
+      </default>
+      <default class="wrist_angle">
+        <joint range="-1.8675 2.23402" armature="0.008" damping="6.28"/>
+        <position ctrlrange="-1.8675 2.23402" kp="37"/>
+      </default>
+      <default class="wrist_rotate">
+        <joint axis="1 0 0" range="-3.14158 3.14158" damping="1.2"/>
+        <position ctrlrange="-3.14158 3.14158" kp="10.4"/>
+      </default>
+      <default class="finger">
+        <joint type="slide" armature="0.243" damping="40"/>
+        <position ctrlrange="0.002 0.037" kp="2000" kv="124"/>
+        <default class="left_finger">
+          <joint range="0 0.041" axis="0 0 -1"/>
+        </default>
+        <default class="right_finger">
+          <joint range="0 0.041" axis="0 0 -1"/>
+        </default>
+      </default>
+      <default class="visual">
+        <geom type="mesh" mass="0" group="2" material="black" contype="0" conaffinity="0"/>
+      </default>
+      <default class="collision">
+        <geom group="3" type="mesh" condim="6" friction="1 5e-3 5e-4" solref=".01 1"/>
+        <default class="sphere_collision">
+          <geom type="sphere" size="0.0006" rgba="1 0 0 1"/>
+        </default>
+      </default>
+    </default>
+  </default>
+
+  <worldbody>
+    <light mode="targetbodycom" target="left/end_effector_target" pos="-.5 .7 2.5" cutoff="55"/>
+    <light mode="targetbodycom" target="right/end_effector_target" pos=".5 .7 2.5" cutoff="55"/>
+    <camera name="teleoperator_pov" pos="0 -1.354 0.685" xyaxes="1 0 0 0 0.2 .8"/>
+    <camera name="collaborator_pov" pos="0 1.5 0.8" xyaxes="-1 0 0 0 -0.2 .8"/>
+
+    <!-- Left Arm (from dual_arm_robot.xml) -->
+    <body name="left/base_link" pos="-0.23 -0.019 -0.01" quat="1 0 0 0">
+      <geom quat="0.707107 0 0 0.707107" type="mesh" mesh="link1" name="left/link1" contype="0" conaffinity="0"/>
+      <body name="left/link2" pos="0.012 0 0.017">
+        <inertial pos="-0.000301849 0.000540437 0.0474335" quat="0.999915 0.000960074 0.0122201 -0.00449872" mass="0.0984068" diaginertia="3.4553e-05 3.26892e-05 1.88409e-05"/>
+        <joint name="left/waist" pos="0 0 0" axis="0 0 1" range="-3.14159 3.14159"/>
+        <geom pos="0 0 0.019" quat="1 0 0 0" type="mesh" mesh="link2"/>
+        <body name="left/shoulder_link" pos="0 0 0.0595">
+          <inertial pos="0.0103084 0.000377434 0.101702" quat="0.71133 0.0466763 0.0513691 0.699423" mass="0.138509" diaginertia="0.000342915 0.000335932 5.49578e-05"/>
+          <joint name="left/shoulder" pos="0 0 0" axis="0 1 0" range="-1.5 1.5"/>
+          <geom type="mesh" mesh="link3"/>
+          <body name="left/upper_arm_link" pos="0.024 0 0.128">
+            <inertial pos="0.0909096 0.000389298 0.000224133" quat="-0.00162881 0.706672 0.0026348 0.707535" mass="0.132746" diaginertia="0.000251551 0.000242311 3.06462e-05"/>
+            <joint name="left/elbow" pos="0 0 0" axis="0 1 0" range="-1.5 1.4"/>
+            <geom type="mesh" mesh="link4"/>
+            <body name="left/upper_forearm_link" pos="0.124 0 0">
+              <inertial pos="0.0442068 3.684e-07 0.00891422" quat="0.479052 0.479052 -0.520105 0.520105" mass="0.143276" diaginertia="9.3211e-05 8.07871e-05 7.59805e-05"/>
+              <joint name="left/forearm_roll" pos="0 0 0" axis="0 1 0" range="-1.7 1.97"/>
+              <geom type="mesh" mesh="link5"/>
+              <!-- Camera added directly to link5 -->
+              <geom type="mesh" mesh="d405_solid" material="camera_black" pos="0.07 0 0.06" quat="0.7071 0 0.7071 0"/>
+              <camera name="wrist_cam_left" pos="0.07 0 0.06" mode="fixed" euler="0 -1.57 3.14159"
+                      focal="1.93e-3 1.93e-3" resolution="1280 720" sensorsize="3896e-6 2140e-6"/>
+              <!-- Gripper finger definitions -->
+              <body name="left/left_finger_link" pos="0.0817 0.021 0">
+                <inertial pos="0 0 0" mass="0.001" diaginertia="1e-06 1e-06 1e-06"/>
+                <joint name="left/left_finger" pos="0 0 0" axis="0 1 0" type="slide" range="-0.01 0.019"/>
+                <geom type="mesh" mesh="gripper_left_palm"/>
+                <site name="left/left_finger" pos="0.015 -0.06 0.02"/>
+              </body>
+              <body name="left/right_finger_link" pos="0.0817 -0.021 0">
+                <inertial pos="0 0 0" mass="0.001" diaginertia="1e-06 1e-06 1e-06"/>
+                <joint name="left/right_finger" pos="0 0 0" axis="0 -1 0" type="slide" range="-0.01 0.019"/>
+                <geom type="mesh" mesh="gripper_right_palm"/>
+                <site name="left/right_finger" pos="0.015 0.06 0.02"/>
+              </body>
+              <!-- Gripper site for IK targets -->
+              <site name="left/gripper" pos="0.13 0 -.003" group="5"/>
+              <!-- Target for camera focusing -->
+              <body name="left/end_effector_target" pos="0.14 0 0">
+                <inertial pos="0 0 0" mass="0.001" diaginertia="1e-06 1e-06 1e-06"/>
+                <geom type="box" size="0.005 0.005 0.005" rgba="1 0 0 1" contype="0" conaffinity="0"/>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!-- Right Arm (from dual_arm_robot.xml) -->
+    <body name="right/base_link" pos="0.23 -0.019 -0.01" quat="0 0 0 1">
+      <geom quat="0.707107 0 0 0.707107" type="mesh" mesh="link1" name="right/link1" contype="0" conaffinity="0"/>
+      <body name="right/link2" pos="0.012 0 0.017">
+        <inertial pos="-0.000301849 0.000540437 0.0474335" quat="0.999915 0.000960074 0.0122201 -0.00449872" mass="0.0984068" diaginertia="3.4553e-05 3.26892e-05 1.88409e-05"/>
+        <joint name="right/waist" pos="0 0 0" axis="0 0 1" range="-3.14159 3.14159"/>
+        <geom pos="0 0 0.019" quat="1 0 0 0" type="mesh" mesh="link2"/>
+        <body name="right/shoulder_link" pos="0 0 0.0595">
+          <inertial pos="0.0103084 0.000377434 0.101702" quat="0.71133 0.0466763 0.0513691 0.699423" mass="0.138509" diaginertia="0.000342915 0.000335932 5.49578e-05"/>
+          <joint name="right/shoulder" pos="0 0 0" axis="0 1 0" range="-1.5 1.5"/>
+          <geom type="mesh" mesh="link3"/>
+          <body name="right/upper_arm_link" pos="0.024 0 0.128">
+            <inertial pos="0.0909096 0.000389298 0.000224133" quat="-0.00162881 0.706672 0.0026348 0.707535" mass="0.132746" diaginertia="0.000251551 0.000242311 3.06462e-05"/>
+            <joint name="right/elbow" pos="0 0 0" axis="0 1 0" range="-1.5 1.4"/>
+            <geom type="mesh" mesh="link4"/>
+            <body name="right/upper_forearm_link" pos="0.124 0 0">
+              <inertial pos="0.0442068 3.684e-07 0.00891422" quat="0.479052 0.479052 -0.520105 0.520105" mass="0.143276" diaginertia="9.3211e-05 8.07871e-05 7.59805e-05"/>
+              <joint name="right/forearm_roll" pos="0 0 0" axis="0 1 0" range="-1.7 1.97"/>
+              <geom type="mesh" mesh="link5"/>
+              <!-- Camera added directly to link5 -->
+              <geom type="mesh" mesh="d405_solid" material="camera_black" pos="0.07 0 0.06" quat="0.7071 0 0.7071 0"/>
+              <camera name="wrist_cam_right" pos="0.07 0 0.06" mode="fixed" euler="0 -1.57 3.14159"
+                      focal="1.93e-3 1.93e-3" resolution="1280 720" sensorsize="3896e-6 2140e-6"/>
+              <!-- Gripper finger definitions -->
+              <body name="right/left_finger_link" pos="0.0817 0.021 0">
+                <inertial pos="0 0 0" mass="0.001" diaginertia="1e-06 1e-06 1e-06"/>
+                <joint name="right/left_finger" pos="0 0 0" axis="0 1 0" type="slide" range="-0.01 0.019"/>
+                <geom type="mesh" mesh="gripper_left_palm"/>
+                <site name="right/left_finger" pos="0.015 -0.06 0.02"/>
+              </body>
+              <body name="right/right_finger_link" pos="0.0817 -0.021 0">
+                <inertial pos="0 0 0" mass="0.001" diaginertia="1e-06 1e-06 1e-06"/>
+                <joint name="right/right_finger" pos="0 0 0" axis="0 -1 0" type="slide" range="-0.01 0.019"/>
+                <geom type="mesh" mesh="gripper_right_palm"/>
+                <site name="right/right_finger" pos="0.015 0.06 0.02"/>
+              </body>
+              <!-- Gripper site for IK targets -->
+              <site name="right/gripper" pos="0.13 0 -.003" group="5"/>
+              <!-- Target for camera focusing -->
+              <body name="right/end_effector_target" pos="0.14 0 0">
+                <inertial pos="0 0 0" mass="0.001" diaginertia="1e-06 1e-06 1e-06"/>
+                <geom type="box" size="0.005 0.005 0.005" rgba="0 0 1 1" contype="0" conaffinity="0"/>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+    
+    <!-- Reference site -->
+    <site name="left/actuation_center" pos="0 0 0.25" group="5"/>
+    <site name="right/actuation_center" pos="0 0 0.25" group="5" xyaxes="-1 0 0 0 -1 0"/>
+  </worldbody>
+
+  <contact>
+    <exclude body1="left/base_link" body2="left/link2"/>
+    <exclude body1="right/base_link" body2="right/link2"/>
+  </contact>
+
+  <equality>
+    <joint joint1="left/left_finger" joint2="left/right_finger" polycoef="0 1 0 0 0"/>
+    <joint joint1="right/left_finger" joint2="right/right_finger" polycoef="0 1 0 0 0"/>
+  </equality>
+
+  <!-- Actuators section using a mix of both models -->
+  <actuator>
+    <!-- Position actuators for joint control -->
+    <position class="waist" name="left/waist" joint="left/waist" ctrlrange="-3.142 3.142"/>
+    <position class="shoulder" name="left/shoulder" joint="left/shoulder" ctrlrange="-1.5 1.5"/>
+    <position class="elbow" name="left/elbow" joint="left/elbow" ctrlrange="-1.5 1.4"/>
+    <position class="forearm_roll" name="left/forearm_roll" joint="left/forearm_roll" ctrlrange="-1.7 1.97"/>
+    <position class="finger" name="left/gripper" joint="left/left_finger" ctrlrange="-0.01 0.019"/>
+
+    <position class="waist" name="right/waist" joint="right/waist" ctrlrange="-3.142 3.142"/>
+    <position class="shoulder" name="right/shoulder" joint="right/shoulder" ctrlrange="-1.5 1.5"/>
+    <position class="elbow" name="right/elbow" joint="right/elbow" ctrlrange="-1.5 1.4"/>
+    <position class="forearm_roll" name="right/forearm_roll" joint="right/forearm_roll" ctrlrange="-1.7 1.97"/>
+    <position class="finger" name="right/gripper" joint="right/left_finger" ctrlrange="-0.01 0.019"/>
+    
+    <!-- Cartesian actuators from filtered_cartesian_actuators.xml -->
+    <general name="left/X" class="act_position_x" site="left/gripper" refsite="left/actuation_center" gear="1 0 0 0 0 0"/>
+    <general name="left/Y" class="act_position_y" site="left/gripper" refsite="left/actuation_center" gear="0 1 0 0 0 0"/>
+    <general name="left/Z" class="act_position_z" site="left/gripper" refsite="left/actuation_center" gear="0 0 1 0 0 0"/>
+    <general name="left/RX" class="act_rotation" site="left/gripper" refsite="left/actuation_center" gear="0 0 0 1 0 0"/>
+    <general name="left/RY" class="act_rotation" site="left/gripper" refsite="left/actuation_center" gear="0 0 0 0 1 0"/>
+    <general name="left/RZ" class="act_rotation" site="left/gripper" refsite="left/actuation_center" gear="0 0 0 0 0 1"/>
+    <general class="act_gripper" name="left/finger" joint="left/left_finger"/>
+
+    <general name="right/X"  class="act_position_x" site="right/gripper" refsite="right/actuation_center" gear="1 0 0 0 0 0"/>
+    <general name="right/Y"  class="act_position_y" site="right/gripper" refsite="right/actuation_center" gear="0 1 0 0 0 0"/>
+    <general name="right/Z"  class="act_position_z" site="right/gripper" refsite="right/actuation_center" gear="0 0 1 0 0 0"/>
+    <general name="right/RX" class="act_rotation" site="right/gripper" refsite="right/actuation_center" gear="0 0 0 1 0 0"/>
+    <general name="right/RY" class="act_rotation" site="right/gripper" refsite="right/actuation_center" gear="0 0 0 0 1 0"/>
+    <general name="right/RZ" class="act_rotation" site="right/gripper" refsite="right/actuation_center" gear="0 0 0 0 0 1"/>
+    <general class="act_gripper" name="right/finger" joint="right/left_finger"/>
+  </actuator>
+
+  <!-- Default keyframes with corrected size -->
+  <keyframe>
+    <key name="neutral_pose" qpos="
+    0 -0.5 0.5 0.5 0.0084 0.0084
+    0 -0.5 0.5 0.5 0.0084 0.0084"
+      ctrl="
+    0 -0.5 0.5 0.5 0.0084
+    0 -0.5 0.5 0.5 0.0084
+    0 0 0 0 0 0 0 
+    0 0 0 0 0 0 0"/>
+  </keyframe>
+</mujoco>

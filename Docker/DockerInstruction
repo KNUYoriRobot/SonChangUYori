@@ -1,0 +1,167 @@
+# workspace_backup을 확인하세요
+
+# 호스트에서 Docker X11 GUI 접근 허용  . 지금 하는 프로세스에서는 사실 필요하지는 않음
+xhost +local:docker
+
+# ROS Noetic 컨테이너 실행 (GUI + 네트워크 + 권한 + workspace 마운트 포함)
+docker run -it \
+  --name meta2 \
+  --env DISPLAY=$DISPLAY \
+  --env XAUTHORITY=$XAUTHORITY \
+  --volume "$XAUTHORITY:$XAUTHORITY" \
+  --volume /tmp/.X11-unix:/tmp/.X11-unix \
+  --volume "$HOME/workspace:/workspace" \
+  --network host \
+  --privileged \
+  osrf/ros:noetic-desktop-full \
+  bash
+
+# 기존 meta2 컨테이너 삭제 (하다가 컨테이너 꼬이면 삭제가능)
+docker rm meta2
+
+# ROS-TCP-Endpoint 및 Quest2ROS 패키지 클론
+git clone https://github.com/Unity-Technologies/ROS-TCP-Endpoint.git
+git clone https://github.com/Quest2ROS/quest2ros.git
+
+# ROS 환경 자동 적용을 위해 .bashrc에 설정 추가
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+echo "source /workspace/catkin_ws/devel/setup.bash" >> ~/.bashrc
+
+# 현재 세션에 ROS 환경 적용
+source devel/setup.bash
+
+# python 명령어 연결 (python → python3)
+apt update
+apt install -y python-is-python3
+
+# ROS 및 워크스페이스 환경 재적용
+source /opt/ros/noetic/setup.bash
+source /workspace/catkin_ws/devel/setup.bash
+
+
+# ---- (새 터미널 창에서) ----
+
+docker start -ai meta2
+
+# 실행 중인 meta2 컨테이너에 진입
+docker exec -it meta2 bash
+
+# ROS-TCP-Endpoint 서버 실행 (Unity 연결 대기)
+roslaunch ros_tcp_endpoint endpoint.launch tcp_ip:=192.168.0.71 tcp_port:=10000
+
+# Quest2ROS에서 Twist 등 데이터 수신 처리 노드 실행
+rosrun quest2ros ros2quest.py
+
+# 현재 사용 가능한 ROS 토픽 목록 확인
+rostopic list
+
+pkill -f roscore    
+
+# ---- 연결 상태 확인 및 테스트 ----
+
+# Quest2 IP에 ping 날려서 네트워크 연결 확인
+ping 192.168.0.71
+
+# 오른쪽 손의 twist 데이터가 퍼블리시되는지 확인
+rostopic echo /q2r_right_hand_twist
+rostopic echo /q2r_left_hand_inputs
+
+
+/dice_twist
+/q2r_left_hand_haptic_feedback
+/q2r_left_hand_inputs
+/q2r_left_hand_pose
+/q2r_left_hand_twist
+/q2r_right_hand_haptic_feedback
+/q2r_right_hand_inputs
+/q2r_right_hand_pose
+/q2r_right_hand_twist
+/q2r_twist
+
+
+# 햅틱 피드백 신호 퍼블리시 테스트 (오른손 컨트롤러에 진동 전달)
+rostopic pub /q2r_right_hand_haptic_feedback quest2ros/OVR2ROSHapticFeedback "{frequency: 150.0, amplitude: 10.0}"
+rostopic pub /q2r_left_hand_haptic_feedback quest2ros/OVR2ROSHapticFeedback "{frequency: 150.0, amplitude: 10.0}"
+
+
+# 햅틱 피드백 토픽의 연결 상태 및 구독자 확인
+rostopic info /q2r_right_hand_haptic_feedback
+
+
+
+
+
+
+
+
+# trac-IK
+sudo apt install ros-noetic-trac-ik
+
+
+20.04에 foxy도 설치
+sudo apt update && sudo apt install curl gnupg2 lsb-release -y
+curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | apt-key add -
+echo "deb http://packages.ros.org/ros2/ubuntu $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/ros2-latest.list
+
+sudo apt update
+sudo apt install ros-foxy-desktop -y
+
+
+로컬 22.04에 noetic설치
+
+
+# ROS1 Noetic 소스 빌드 (공식 가이드) // 도커 20.04환경에서 설치
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros-focal.list'
+wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+sudo apt update
+sudo apt install ros-noetic-ros-base
+
+
+docker stop meta2
+
+basrhrc에 설정 없애주기 ros1 노에텍 셋업
+
+sudo apt update
+sudo apt install ros-foxy-ros1-bridge -y
+
+
+
+
+source /opt/ros/noetic/setup.bash
+source /opt/ros/foxy/setup.bash
+ros2 run ros1_bridge dynamic_bridge
+
+
+
+source /opt/ros/noetic/setup.bash
+roscore  # (roscore가 이미 켜져 있으면 생략)
+rostopic pub /chatter std_msgs/String "data: 'hello from ROS1'" -r 1
+
+
+source /opt/ros/foxy/setup.bash
+ros2 topic echo /chatter
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+docker commit meta2 meta2_backup
+docker save -o meta2_backup_image.tar meta2_backup
+
+
+----
+Docker push
+docker push iuiwhgi/meta2quest_noetic_env:latest
+
+docker pull iuiwhgi/meta2quest_noetic_env:latest
+
+
